@@ -88,7 +88,8 @@ RUN set -x \
     && chown -R slurm:slurm /var/*/slurm* \
     && /sbin/create-munge-key
 
-RUN python -m pip install qiskit==1.0.2 qiskit-aer==0.14.0.1
+RUN yum -y install openmpi
+RUN python -m pip install qiskit==1.0.2 qiskit-aer==0.14.0.1 mpi4py qiskit_qasm3_import
 
 COPY slurm.conf /etc/slurm/slurm.conf
 COPY slurmdbd.conf /etc/slurm/slurmdbd.conf
@@ -97,6 +98,8 @@ RUN set -x \
     && chmod 600 /etc/slurm/slurmdbd.conf
 
 RUN chmod 777 /data
+
+# RUN useradd -m qiskituser -s /usr/bin/bash -d /home/qiskituser && echo "qiskituser:qiskituser" | chpasswd && adduser qiskituser sudo && echo "qiskituser     ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
