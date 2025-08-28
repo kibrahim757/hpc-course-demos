@@ -1,0 +1,38 @@
+OpenBLAS WARNING - could not determine the L2 cache size on this system, assuming 256k
+/data/ch4/sqd/postprocessing.py:4: DeprecationWarning: Using Qiskit with Python 3.9 is deprecated as of the 2.1.0 release. Support for running Qiskit with Python 3.9 will be removed in the 2.3.0 release, which coincides with when Python 3.9 goes end of life.
+  from qiskit import qpy
+OpenBLAS WARNING - could not determine the L2 cache size on this system, assuming 256k
+OpenBLAS WARNING - could not determine the L2 cache size on this system, assuming 256k
+Iteration 1
+	Subsample 0
+		Energy: -11.983662725490737
+		Subspace dimension: 1600
+	Subsample 1
+		Energy: -11.848221149342294
+		Subspace dimension: 1444
+	Subsample 2
+		Energy: -12.020689931653349
+		Subspace dimension: 1681
+Iteration 2
+	Subsample 0
+		Energy: -12.118019837245313
+		Subspace dimension: 1764
+	Subsample 1
+		Energy: -12.12300926295643
+		Subspace dimension: 1849
+	Subsample 2
+		Energy: -12.213387243549809
+		Subspace dimension: 1936
+Iteration 3
+	Subsample 0
+		Energy: -12.213387243549809
+		Subspace dimension: 1936
+	Subsample 1
+		Energy: -12.213387243549809
+		Subspace dimension: 1936
+	Subsample 2
+		Energy: -12.213387243549809
+		Subspace dimension: 1936
+Exact energy: -13.42249
+SQD energy: -12.21339
+Absolute error: 1.20910

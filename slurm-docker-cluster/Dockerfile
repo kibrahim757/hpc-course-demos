@@ -89,7 +89,9 @@ RUN set -x \
     && /sbin/create-munge-key
 
 RUN yum -y install openmpi
-RUN python -m pip install qiskit==1.0.2 qiskit-aer==0.14.0.1 mpi4py qiskit_qasm3_import
+# RUN python -m pip install qiskit==1.0.2 qiskit-aer==0.14.0.1 mpi4py qiskit_qasm3_import
+RUN python -m pip install --upgrade pip setuptools wheel
+RUN python -m pip install qiskit qiskit-aer mpi4py qiskit_qasm3_import ffsim scipy qiskit_addon_sqd
 
 COPY slurm.conf /etc/slurm/slurm.conf
 COPY slurmdbd.conf /etc/slurm/slurmdbd.conf

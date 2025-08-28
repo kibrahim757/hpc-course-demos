@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-#SBATCH --job-name=hello-qiskit
-#SBATCH --output=hello_qiskit.out
+#SBATCH --job-name=sqd-execution
+#SBATCH --output=sqd-execution.out
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
@@ -9,4 +9,4 @@
 #SBATCH --gres=qpu:1
 
 
-srun python /data/ch2/hello_qiskit/hello_qiskit.py
+srun python /data/ch4/sqd/execution.py

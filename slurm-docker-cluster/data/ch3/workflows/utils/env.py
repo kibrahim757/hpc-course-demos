@@ -1,0 +1,1 @@
+NUM_QUBITS = 10

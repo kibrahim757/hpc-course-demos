@@ -1,12 +1,14 @@
+import os
 import numpy as np
 from qiskit.circuit.library import PauliTwoDesign
 from qiskit.quantum_info import SparsePauliOp
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qrmi import QRMI, EstimatorV2
 
+from utils.env import NUM_QUBITS
 
 # Map problem
-num_qubits=5
+num_qubits=os.environ.get("NUM_QUBITS", NUM_QUBITS)
 qc = PauliTwoDesign(num_qubits=num_qubits,reps=4, seed=5, insert_barriers=True)
 parameters = qc.parameters
 obs = SparsePauliOp.from_sparse_list([("Z", [num_qubits-2], 1)], num_qubits=num_qubits)

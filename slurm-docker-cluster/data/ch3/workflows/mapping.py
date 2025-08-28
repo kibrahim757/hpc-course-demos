@@ -5,8 +5,11 @@ from qiskit.circuit.library import PauliTwoDesign
 from qiskit.quantum_info import SparsePauliOp
 from qiskit.qasm3 import dumps
 
+from utils.env import NUM_QUBITS
 
-num_qubits=os.environ.get("NUM_QUBITS", 10)
+
+num_qubits=os.environ.get("NUM_QUBITS", NUM_QUBITS)
+
 qc = PauliTwoDesign(num_qubits=num_qubits,reps=4, seed=5, insert_barriers=True)
 parameters = qc.parameters
 obs = SparsePauliOp.from_sparse_list([("Z", [num_qubits-2], 1)], num_qubits=num_qubits)
