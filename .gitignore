@@ -214,3 +214,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Other
+slurm-docker-cluster
+slurm-docker-cluster.orig

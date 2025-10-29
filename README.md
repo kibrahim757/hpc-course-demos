@@ -1,30 +1,14 @@
-Code examples for HPC course
-============================
+Local docker example of HPC + Quantum setup
+===========================================
+
+## Code examples
+
+[Code examples](./source/chapters/)
+* [Hello, World!](./source/chapters/ch2/hello_world/)
+* [Hello, Qiskit!](./source/chapters/ch2/hello_qiskit/)
+* [Qiskit pattern workflow](./source/chapters/ch3/workflows/)
+* [SQD workflow](./source/chapters/ch4/sqd/)
 
 ## Installation
 
-- build docker slurm cluster
-- change configuration to include QPUs
-- run slurm cluster
-
-----
-
-## Chapter 2
-
-### Hello World
-
-```shell
-cd /data
-mkdir hello_world
-cd hello_world
-
-```
-
-
-### Hello Qiskit
-
-
-----
-
-## Chapter 3
-
+Full installation instructions are available in [INSTALLATION.md](./source/installation.md) file

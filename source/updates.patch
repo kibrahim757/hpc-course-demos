@@ -1,0 +1,356 @@
+diff --color -bur --ex ./slurm-docker-cluster.orig/.env ./slurm-docker-cluster/.env
+--- ./slurm-docker-cluster.orig/.env	2025-10-29 11:36:51
++++ ./slurm-docker-cluster/.env	2025-10-21 11:56:58
+@@ -3,4 +3,4 @@
+ 
+ # Image version used to tag the container at build time (Typically matches the
+ # Slurm tag in semantic version form)
+-IMAGE_TAG=25.05.3
++IMAGE_TAG=25.05.3-dev
+diff --color -bur --ex ./slurm-docker-cluster.orig/Dockerfile ./slurm-docker-cluster/Dockerfile
+--- ./slurm-docker-cluster.orig/Dockerfile	2025-10-29 11:36:51
++++ ./slurm-docker-cluster/Dockerfile	2025-10-29 14:10:08
+@@ -1,4 +1,4 @@
+-FROM rockylinux:8
++FROM rockylinux:9
+ 
+ LABEL org.opencontainers.image.source="https://github.com/giovtorres/slurm-docker-cluster" \
+       org.opencontainers.image.title="slurm-docker-cluster" \
+@@ -10,7 +10,7 @@
+     && yum makecache \
+     && yum -y update \
+     && yum -y install dnf-plugins-core \
+-    && yum config-manager --set-enabled powertools \
++    && yum config-manager --set-enabled crb \
+     && yum -y install \
+        wget \
+        bzip2 \
+@@ -22,9 +22,8 @@
+        make \
+        munge \
+        munge-devel \
+-       python3-devel \
+-       python3-pip \
+-       python3 \
++       python3.12-devel \
++       python3.12-pip \
+        mariadb-server \
+        mariadb-devel \
+        psmisc \
+@@ -32,13 +31,27 @@
+        vim-enhanced \
+        http-parser-devel \
+        json-c-devel \
++       cmake \
++       clang-tools-extra \
++       procps \
++       iputils \
++       net-tools \
++       openblas-devel \
++       jq \
++       iputils \
++       net-tools \
++       libyaml-devel \
++       procps \
++       lua-devel \
+     && yum clean all \
+     && rm -rf /var/cache/yum
+ 
+-RUN alternatives --set python /usr/bin/python3
++RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+ 
+-RUN pip3 install Cython pytest
++RUN pip3.12 install Cython pytest
+ 
++RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
++
+ ARG GOSU_VERSION=1.17
+ 
+ RUN set -ex \
+@@ -88,10 +101,20 @@
+ 
+ COPY slurm.conf /etc/slurm/slurm.conf
+ COPY slurmdbd.conf /etc/slurm/slurmdbd.conf
++COPY cgroup.conf /etc/slurm/cgroup.conf
++COPY plugstack.conf.example /etc/slurm/plugstack.conf.example
++COPY plugstack.conf /etc/slurm/plugstack.conf
++COPY qrmi_config.json /etc/slurm/qrmi_config.json
++COPY qrmi_config.json.example /etc/slurm/qrmi_config.json.example
+ RUN set -x \
+     && chown slurm:slurm /etc/slurm/slurmdbd.conf \
+     && chmod 600 /etc/slurm/slurmdbd.conf
+-
++RUN python3.12 -m venv ~/venv \
++    && source ~/venv/bin/activate \
++    && pip install --upgrade pip
++RUN python3.12 -m venv ~/venv \
++    && source ~/venv/bin/activate \
++    && pip install qiskit qiskit_qasm3_import ffsim scipy qiskit_addon_sqd
+ 
+ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+ ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+diff --color -bur --ex ./slurm-docker-cluster.orig/cgroup.conf ./slurm-docker-cluster/cgroup.conf
+--- ./slurm-docker-cluster.orig/cgroup.conf	2025-10-29 11:36:51
++++ ./slurm-docker-cluster/cgroup.conf	2025-10-21 11:56:58
+@@ -1 +1,18 @@
++###
++#
++# Slurm cgroup support configuration file
++#
++# See man slurm.conf and man cgroup.conf for further
++# information on cgroup configuration parameters
++#--
++ConstrainCores=yes
++ConstrainDevices=yes
++ConstrainRAMSpace=yes
++ConstrainSwapSpace=yes
++
+ CgroupPlugin=cgroup/v1
++
++MaxRAMPercent=98
++AllowedSwapSpace=0
++AllowedRAMSpace=100
++MemorySwappiness=0
+diff --color -bur --ex ./slurm-docker-cluster.orig/docker-compose.yml ./slurm-docker-cluster/docker-compose.yml
+--- ./slurm-docker-cluster.orig/docker-compose.yml	2025-10-29 11:36:51
++++ ./slurm-docker-cluster/docker-compose.yml	2025-10-29 14:27:19
+@@ -10,22 +10,24 @@
+       MYSQL_PASSWORD: password
+     volumes:
+       - var_lib_mysql:/var_lib/mysql
++      - ./shared:/shared
+     networks:
+       - slurm-network
+ 
+   slurmdbd:
+-    image: slurm-docker-cluster:${SLURM_VERSION:-25.05.3}
++    image: slurm-docker-cluster:${IMAGE_TAG}
+     build:
+       context: .
+       args:
+-        SLURM_TAG: ${SLURM_TAG:-slurm-25-05-3-1}
++        SLURM_TAG: ${SLURM_TAG}
+     command: ["slurmdbd"]
+     container_name: slurmdbd
+     hostname: slurmdbd
+     volumes:
+       - etc_munge:/etc/munge
+       - etc_slurm:/etc/slurm
+-      - var_log_slurm:/var/log/slurm
++      - var_log_slurmdbd:/var/log/slurm
++      - ./shared:/shared
+     expose:
+       - "6819"
+     depends_on:
+@@ -34,11 +36,11 @@
+       - slurm-network
+ 
+   slurmctld:
+-    image: slurm-docker-cluster:${SLURM_VERSION:-25.05.3}
++    image: slurm-docker-cluster:${IMAGE_TAG}
+     build:
+       context: .
+       args:
+-        SLURM_TAG: ${SLURM_TAG:-slurm-25-05-3-1}
++        SLURM_TAG: ${SLURM_TAG}
+     command: ["slurmctld"]
+     container_name: slurmctld
+     hostname: slurmctld
+@@ -46,8 +48,9 @@
+       - etc_munge:/etc/munge
+       - etc_slurm:/etc/slurm
+       - slurm_jobdir:/data
+-      - var_log_slurm:/var/log/slurm
+-      - ./cgroup.conf:/etc/slurm/cgroup.conf # <-- ADICIONADO AQUI
++      - var_log_slurmctld:/var/log/slurm
++      - ./cgroup.conf:/etc/slurm/cgroup.conf
++      - ./shared:/shared
+     expose:
+       - "6817"
+     depends_on:
+@@ -56,11 +59,11 @@
+       - slurm-network
+ 
+   c1:
+-    image: slurm-docker-cluster:${SLURM_VERSION:-25.05.3}
++    image: slurm-docker-cluster:${IMAGE_TAG}
+     build:
+       context: .
+       args:
+-        SLURM_TAG: ${SLURM_TAG:-slurm-25-05-3-1}
++        SLURM_TAG: ${SLURM_TAG}
+     command: ["slurmd"]
+     hostname: c1
+     container_name: c1
+@@ -68,8 +71,9 @@
+       - etc_munge:/etc/munge
+       - etc_slurm:/etc/slurm
+       - slurm_jobdir:/data
+-      - var_log_slurm:/var/log/slurm
+-      - ./cgroup.conf:/etc/slurm/cgroup.conf # <-- ADICIONADO AQUI
++      - var_log_c1:/var/log/slurm
++      - ./cgroup.conf:/etc/slurm/cgroup.conf
++      - ./shared:/shared
+     expose:
+       - "6818"
+     depends_on:
+@@ -78,11 +82,11 @@
+       - slurm-network
+ 
+   c2:
+-    image: slurm-docker-cluster:${SLURM_VERSION:-25.05.3}
++    image: slurm-docker-cluster:${IMAGE_TAG}
+     build:
+       context: .
+       args:
+-        SLURM_TAG: ${SLURM_TAG:-slurm-25-05-3-1}
++        SLURM_TAG: ${SLURM_TAG}
+     command: ["slurmd"]
+     hostname: c2
+     container_name: c2
+@@ -90,8 +94,9 @@
+       - etc_munge:/etc/munge
+       - etc_slurm:/etc/slurm
+       - slurm_jobdir:/data
+-      - var_log_slurm:/var/log/slurm
+-      - ./cgroup.conf:/etc/slurm/cgroup.conf # <-- ADICIONADO AQUI
++      - var_log_c2:/var/log/slurm
++      - ./cgroup.conf:/etc/slurm/cgroup.conf
++      - ./shared:/shared
+     expose:
+       - "6818"
+     depends_on:
+@@ -99,12 +104,62 @@
+     networks:
+       - slurm-network
+ 
+-volumes:
++  q1:
++    image: slurm-docker-cluster:${IMAGE_TAG}
++    build:
++      context: .
++      args:
++        SLURM_TAG: ${SLURM_TAG}
++    command: ["slurmd"]
++    hostname: q1
++    container_name: q1
++    volumes:
++      - etc_munge:/etc/munge
++      - etc_slurm:/etc/slurm
++      - slurm_jobdir:/data
++      - var_log_q1:/var/log/slurm
++      - ./cgroup.conf:/etc/slurm/cgroup.conf
++      - ./shared:/shared
++    expose:
++      - "6818"
++    depends_on:
++      - "slurmctld"
++    networks:
++      - slurm-network
++
++  slurm-login:
++    image: slurm-docker-cluster:${IMAGE_TAG}
++    build:
++      context: .
++      args:
++        SLURM_TAG: ${SLURM_TAG}
++    command: ["login"]
++    hostname: login
++    container_name: login
++    stdin_open: true
++    tty: true
++    volumes:
++      - etc_munge:/etc/munge
++      - etc_slurm:/etc/slurm
++      - slurm_jobdir:/data
++      - ./shared:/shared
++    expose:
++      - "6818"
++    depends_on:
++      - "slurmctld"
++    networks:
++      - slurm-network
++
++volumes:
+   etc_munge:
+   etc_slurm:
+   slurm_jobdir:
+   var_lib_mysql:
+-  var_log_slurm:
++  var_log_slurmdbd:
++  var_log_slurmctld:
++  var_log_c1:
++  var_log_c2:
++  var_log_q1:
+ 
+ networks:
+   slurm-network:
+diff --color -bur --ex ./slurm-docker-cluster.orig/docker-entrypoint.sh ./slurm-docker-cluster/docker-entrypoint.sh
+--- ./slurm-docker-cluster.orig/docker-entrypoint.sh	2025-10-29 11:36:51
++++ ./slurm-docker-cluster/docker-entrypoint.sh	2025-10-21 11:56:58
+@@ -61,4 +61,11 @@
+     exec /usr/sbin/slurmd -Dvvv
+ fi
+ 
++if [ "$1" = "login" ]
++then
++    echo "---> Starting the MUNGE Authentication service (munged) ..."
++    gosu munge /usr/sbin/munged
++    exec tail -f /dev/null
++fi
++
+ exec "$@"
+Only in ./slurm-docker-cluster: login.sh
+Only in ./slurm-docker-cluster: login_c1.sh
+Only in ./slurm-docker-cluster: login_c2.sh
+Only in ./slurm-docker-cluster: plugstack.conf
+Only in ./slurm-docker-cluster: plugstack.conf.example
+Only in ./slurm-docker-cluster: qrmi_config.json
+Only in ./slurm-docker-cluster: qrmi_config.json.example
+Only in ./slurm-docker-cluster: shared
+diff --color -bur --ex ./slurm-docker-cluster.orig/slurm.conf ./slurm-docker-cluster/slurm.conf
+--- ./slurm-docker-cluster.orig/slurm.conf	2025-10-29 11:36:51
++++ ./slurm-docker-cluster/slurm.conf	2025-10-29 15:14:50
+@@ -8,6 +8,7 @@
+ #BackupController=
+ #BackupAddr=
+ #
++GresTypes=qpu
+ SlurmUser=slurm
+ #SlurmdUser=root
+ SlurmctldPort=6817
+@@ -73,6 +74,7 @@
+ SlurmctldLogFile=/var/log/slurm/slurmctld.log
+ SlurmdDebug=3
+ SlurmdLogFile=/var/log/slurm/slurmd.log
++DebugFlags=GRES
+ JobCompType=jobcomp/filetxt
+ JobCompLoc=/var/log/slurm/jobcomp.log
+ #
+@@ -89,9 +91,10 @@
+ #
+ # COMPUTE NODES
+ # MODIFICAÇÃO 3: Nós definidos explicitamente para robustez na rede Docker e contagem de CPUs
+-NodeName=c1 NodeAddr=c1 CPUs=2 RealMemory=1000 State=UNKNOWN
+-NodeName=c2 NodeAddr=c2 CPUs=2 RealMemory=1000 State=UNKNOWN
++NodeName=c[1-2] CPUs=6 RealMemory=1000 Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=UNKNOWN
++NodeName=q[1-1] CPUs=6 Gres=qpu:1 RealMemory=1000 Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=UNKNOWN
++
+ #
+ # PARTITIONS
+-#PartitionName=normal Default=yes Nodes=c1,c2 Priority=50 DefMemPerCPU=500 Shared=NO MaxNodes=2 MaxTime=5-00:00:00 DefaultTime=5-00:00:00 State=UP
+-PartitionName=normal Nodes=c1,c2 Default=YES MaxTime=INFINITE State=UP
++PartitionName=normal Default=yes Nodes=c[1-2] Priority=50 DefMemPerCPU=500 Shared=NO MaxNodes=5 MaxTime=5-00:00:00 DefaultTime=5-00:00:00 State=UP
++PartitionName=quantum Nodes=q[1-1] Priority=50 DefMemPerCPU=500 Shared=NO MaxNodes=1 MaxTime=5-00:00:00 DefaultTime=5-00:00:00 State=UP
+diff --color -bur --ex ./slurm-docker-cluster.orig/update_slurmfiles.sh ./slurm-docker-cluster/update_slurmfiles.sh
+--- ./slurm-docker-cluster.orig/update_slurmfiles.sh	2025-10-29 11:36:51
++++ ./slurm-docker-cluster/update_slurmfiles.sh	2025-10-21 11:56:58
+@@ -6,7 +6,7 @@
+ 
+ for var in "$@"
+ do
+-    if [ "$var" = "slurmdbd.conf" ] || [ "$var" = "slurm.conf" ]
++    if [ "$var" = "slurmdbd.conf" ] || [ "$var" = "slurm.conf" ] || [ "$var" = "cgroup.conf" ] || [ "$var" = "plugstack.conf" ]
+     then
+         export SLURM_TMP=$(cat $var)
+         docker exec slurmctld bash -c "echo \"$SLURM_TMP\" >/etc/slurm/\"$var\""
