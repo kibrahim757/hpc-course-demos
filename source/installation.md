@@ -21,103 +21,9 @@ This document describes how to setup development environment and the plugins dev
 
 You can skip below steps if you already have Slurm Cluster for development.
 
-#### 1. Creating your workspace on your PC
-```bash
-mkdir -p <YOUR WORKSPACE>
-cd <YOUR WORKSPACE>
-```
+Please refer to  the [documentation in our shared repo](https://github.com/qiskit-community/spank-plugins/blob/main/demo/qrmi/slurm-docker-cluster/INSTALL.md) for the latest Slurm Docker Cluster installation instructions.
 
-#### 2. Cloning Slurm Docker Cluster git repository 
-
-```bash
-git clone https://github.com/giovtorres/slurm-docker-cluster.git
-cd slurm-docker-cluster
-```
-
-
-#### 3. Cloning qiskit-community/spank-plugins and qiskit-community/qrmi
-
-```bash
-mkdir shared
-pushd shared
-git clone git@github.com:qiskit-community/spank-plugins.git
-git clone git@github.com:qiskit-community/qrmi.git
-popd
-```
-
-#### 3.1 Adding examples
-
-```bash
-cp -r ../chapters ./shared
-```
-
-#### 4. Applying a patch to slurm-docker-cluster
-
-```bash
-patch -p1 < ./shared/spank-plugins/demo/qrmi/slurm-docker-cluster/updates.patch
-```
-
-#### 5. Building containers
-
-```bash
-docker compose build --no-cache
-```
-
-#### 6. Starting a cluster
-
-```bash
-docker compose up -d
-```
-
-> [!NOTE]
-> Ensure that the following 6 containers are running on the PC.
->
-> - c2 (Compute Node #2)
-> - c1 (Compute Node #1)
-> - slurmctld (Central Management Node)
-> - slurmdbd (Slurm DB Node)
-> - login (Login Node)
-> - mysql (Database node)
-
-Slurm Cluster is now set up as shown.
-
-<p align="center">
-  <img src="../../../docs/images/slurm-docker-cluster.png" width="640">
-</p>
-
-
-### Building and installing QRMI and SPANK Plugins
-
-
-> [!NOTE]
-> The following explanation assumes:
-> - building code on `c1` node. Other nodes are also acceptable.
-
-
-1. Login to c1 container
-```bash
-% docker exec -it c1 bash
-```
-
-2. Creating python virtual env under shared volume
-
-```bash
-[root@c1 /]# python3.12 -m venv /shared/pyenv
-[root@c1 /]# python3.12 -m pip install --upgrade pip
-```
-
-3. Building and installing [QRMI](https://github.com/qiskit-community/qrmi/blob/main/INSTALL.md)
-
-```bash
-% docker exec -it c1 bash
-
-[root@c1 /]# source ~/.cargo/env
-[root@c1 /]# source /shared/pyenv/bin/activate
-[root@c1 /]# cd /shared/qrmi
-[root@c1 /]# pip install -r requirements-dev.txt
-[root@c1 /]# maturin build --release
-[root@c1 /]# pip install /shared/qrmi/target/wheels/qrmi-0.8.0-cp312-abi3-manylinux_2_34_x86_64.whl # file name might be different. Based on your kernel
-```
+##### Note 
 
 4. Building [SPANK Plugin](../../../plugins/spank_qrmi/README.md)
 
@@ -153,88 +59,10 @@ Example:
 }
 ```
 
-6. Installing SPANK Plugins
-
-Create `/etc/slurm/plugstack.conf` if not exists and add the following lines:
-```bash
-optional /shared/spank-plugins/plugins/spank_qrmi/build/spank_qrmi.so /etc/slurm/qrmi_config.json
-```
-
-Above example assumes you create `qrmi_config.json` under /etc/slurm directory.
-
-> [!NOTE]
-> When you setup your own slurm cluster, `plugstack.conf`, `qrmi_config.json` and above plugin libraries need to be installed on the machines that execute slurmd (compute nodes) as well as on the machines that execute job allocation utilities such as salloc, sbatch, etc (login nodes). Refer [SPANK documentation](https://slurm.schedmd.com/spank.html#SECTION_CONFIGURATION) for more details.
-
-7. Checking SPANK Plugins installation
-
-If you complete above step, you must see additional options of `sbatch` like below.
-
-```bash
-[root@c1 /]# sbatch --help | grep qpu
-
-Options provided by plugins:
-      --qpu=names             Comma separated list of QPU resources to use.
-```
-
-### Running examples of primitive job in Slurm Cluster
-
-1. Loging in to login node
-
-```bash
-% docker exec -it login bash
-```
-
-2. Running Sampler job
-
-```bash
-[root@login /]# sbatch /shared/spank-plugins/demo/qrmi/jobs/run_sampler.sh
-```
- 
-3. Running Estimator job
-
-```bash
-[root@login /]# sbatch /shared/spank-plugins/demo/qrmi/jobs/run_estimator.sh
-```
-
-4. Running Pasqal job
-
-```bash
-[root@login /]# sbatch /shared/spank-plugins/demo/qrmi/jobs/run_pulser_backend.sh
-```
-
-5. Checking primitive results
-
-Once above scripts are completed, you must find `slurm-{job_id}.out` in the current directory.
-
-For example,
-```bash
-[root@login /]# cat slurm-81.out
-{'backend_name': 'test_eagle'}
->>> Observable: ['IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...',
- 'IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII...', ...]
->>> Circuit ops (ISA): OrderedDict([('rz', 2724), ('sx', 1185), ('ecr', 576), ('x', 288)])
->>> Job ID: 0b1965a6-7473-4efc-aea2-6e2f1c843e5b
->>> Job Status: JobStatus.RUNNING
->>> PrimitiveResult([PubResult(data=DataBin(evs=np.ndarray(<shape=(), dtype=float64>), stds=np.ndarray(<shape=(), dtype=float64>), ensemble_standard_error=np.ndarray(<shape=(), dtype=float64>)), metadata={'shots': 4096, 'target_precision': 0.015625, 'circuit_metadata': {}, 'resilience': {}, 'num_randomizations': 32})], metadata={'dynamical_decoupling': {'enable': False, 'sequence_type': 'XX', 'extra_slack_distribution': 'middle', 'scheduling_method': 'alap'}, 'twirling': {'enable_gates': False, 'enable_measure': True, 'num_randomizations': 'auto', 'shots_per_randomization': 'auto', 'interleave_randomizations': True, 'strategy': 'active-accum'}, 'resilience': {'measure_mitigation': True, 'zne_mitigation': False, 'pec_mitigation': False}, 'version': 2})
-  > Expectation value: 0.16554467382152394
-  > Metadata: {'shots': 4096, 'target_precision': 0.015625, 'circuit_metadata': {}, 'resilience': {}, 'num_randomizations': 32}
-```
 
 ### Running examples of hybrid jobs
 
+The examples in the [Slurm Docker Cluster Installation Document](https://github.com/qiskit-community/spank-plugins/blob/main/demo/qrmi/slurm-docker-cluster/INSTALL.md) show how to submit quantum only jobs using QRMI, next we will look into Quantum-Classical mixed workflows.
 
 #### 1. Running `Hello, World!` and `Hello, Qiskit!`
 
@@ -276,4 +104,9 @@ See [the docs](https://github.com/qiskit-community/qrmi/blob/main/bin/task_runne
 [root@login /]# sbatch /shared/spank-plugins/demo/qrmi/jobs/run_task.sh
 ```
 
-## END OF DOCUMENT
+#### Convenient commands to update devices or output locations:
+
+```bash
+find . -name "*.sh" -exec sed -i 's/^#SBATCH --qpu=.*/#SBATCH --qpu=ibm_torino/' {} +
+find ~/hpc-course-demos -name "*.sh" -exec grep -l "#SBATCH --output=" {} \; -exec sed -i 's|#SBATCH --output=.*|#SBATCH --output=/shared/slurm-%j.out|g' {} \;
+```

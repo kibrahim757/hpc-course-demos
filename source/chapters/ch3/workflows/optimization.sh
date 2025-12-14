@@ -1,9 +1,10 @@
 #!/bin/bash
 #
 #SBATCH --job-name=optimization
-#SBATCH --output=/shared/chapters/ch3/workflows/optimization.out
+#SBATCH --output=/shared/slurm-%j.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
+#SBATCH --qpu=ibm_torino
 
 # Your script goes here
 source /shared/pyenv/bin/activate

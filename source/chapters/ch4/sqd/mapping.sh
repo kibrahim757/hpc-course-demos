@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #SBATCH --job-name=sqd-mapping
-#SBATCH --output=/shared/chapters/ch4/sqd/sqd-mapping.out
+#SBATCH --output=/shared/slurm-%j.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
