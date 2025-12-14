@@ -60,7 +60,7 @@ Example:
 ```
 
 
-### Running examples of hybrid jobs
+### Running examples of hybrid jobs in the Slurm Cluster
 
 The examples in the [Slurm Docker Cluster Installation Document](https://github.com/qiskit-community/spank-plugins/blob/main/demo/qrmi/slurm-docker-cluster/INSTALL.md) show how to submit quantum only jobs using QRMI, next we will look into Quantum-Classical mixed workflows.
 
@@ -108,5 +108,5 @@ See [the docs](https://github.com/qiskit-community/qrmi/blob/main/bin/task_runne
 
 ```bash
 find . -name "*.sh" -exec sed -i 's/^#SBATCH --qpu=.*/#SBATCH --qpu=ibm_torino/' {} +
-find ~/hpc-course-demos -name "*.sh" -exec grep -l "#SBATCH --output=" {} \; -exec sed -i 's|#SBATCH --output=.*|#SBATCH --output=/shared/slurm-%j.out|g' {} \;
+find ~/hpc-course-demos -name "*.sh" -exec grep -l "#SBATCH --output=" {} \; -exec sed -i 's|#SBATCH --output=.*|#SBATCH --output=slurm-%j.out|g' {} \;
 ```
