@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #SBATCH --job-name=execution
-#SBATCH --output=slurm-%j.out
+#SBATCH --output=/shared/chapters/ch3/workflows/execution.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --qpu=ibm_torino
