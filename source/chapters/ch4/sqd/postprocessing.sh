@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #SBATCH --job-name=sqd-postprocessing
-#SBATCH --output=slurm-%j.out
+#SBATCH --output=/shared/chapters/ch4/sqd/sqd-postprocessing.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 
