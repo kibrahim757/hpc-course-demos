@@ -19,7 +19,10 @@ with open(os.path.join(data_folder, "isa_circuit.qasm")) as f:
     qc = loads(f.read())
 
 with open(os.path.join(data_folder, "isa_obs.json")) as f:
-    obs = SparsePauliOp.from_operator(json.load(f))
+    obs_json = json.load(f)
+
+obs = SparsePauliOp(obs_json["paulis"], obs_json["coeffs"])
+
 
 with open(os.path.join(data_folder, "parameters.json")) as f:
     parameter_values = json.load(f)

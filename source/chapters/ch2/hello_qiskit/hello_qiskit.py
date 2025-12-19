@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from dotenv import load_dotenv
-from qiskit.circuit.library import PauliTwoDesign
+from qiskit.circuit.library import pauli_two_design
 from qiskit.quantum_info import SparsePauliOp
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 
@@ -12,9 +12,13 @@ from qrmi.primitives.ibm import EstimatorV2, get_target
 load_dotenv()
 service = QRMIService()
 
+resources = service.resources()
+qrmi = resources[0]
+target = get_target(qrmi)
+
 # Map problem
-num_qubits=os.environ.get("NUM_QUBITS", 10)
-qc = PauliTwoDesign(num_qubits=num_qubits,reps=4, seed=5, insert_barriers=True)
+num_qubits=target.num_qubits
+qc = pauli_two_design(num_qubits=num_qubits,reps=4, seed=5, insert_barriers=True)
 parameters = qc.parameters
 obs = SparsePauliOp.from_sparse_list([("Z", [num_qubits-2], 1)], num_qubits=num_qubits)
 
@@ -22,17 +26,16 @@ phi_max = 0.5 * np.pi
 parameter_values = np.random.uniform(-1 * phi_max, phi_max, len(parameters))
 
 
-resources = service.resources()
+
 if len(resources) == 0:
     raise ValueError("No quantum resource is available.")
 
-qrmi = resources[0]
-target = get_target(qrmi)
+
 
 # Optimize
 pm = generate_preset_pass_manager(
         target=target, 
-        optimization_level=1
+        optimization_level=0
       )
 t_qc = pm.run(qc)
 t_obs = obs.apply_layout(t_qc.layout)

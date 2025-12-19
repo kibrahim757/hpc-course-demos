@@ -1,112 +1,158 @@
 # Installation
 
-This document describes how to setup development environment and the plugins developed in this project.
+This document provides guidance on setting up an environment for the HPC course exercises. Let’s start by preparing the necessary information first..
 
 
-## Setup Local Development Environment
-
-### Jump To:
+# Jump To:
 - [Pre-requisites](#pre-requisites)
 - [Creating Docker-based Slurm Cluster](#creating-docker-based-slurm-cluster)
 - [Building and installing QRMI and SPANK Plugins](#building-and-installing-qrmi-and-spank-plugins)
-- [Running examples of primitive job in Slurm Cluster](#running-examples-of-primitive-job-in-slurm-cluster)
+- [Modify configurations for this course](#running-examples-of-primitive-job-in-slurm-cluster)
 
 
-### Pre-requisites
+# Pre-requisites
 
-- [Podman](https://podman.io/getting-started/installation.html) or [Docker](https://docs.docker.com/get-docker/) installed. You can use [Rancher Desktop](https://rancherdesktop.io/) instead of installing Docker on your PC.
+## Docker Environment
+The exercises will be conducted using Docker, which includes a Slurm cluster set up on your local computer.
+
+Docker is an open platform for packaging, distributing, and running applications in lightweight, portable containers. It streamlines development workflows by isolating applications with their dependencies, ensuring consistent behavior across environments—from local laptops to cloud servers.
+
+At its core, Docker Engine manages containers using OS-level virtualization on Linux and lightweight VMs on macOS and Windows.
+To use Docker on your desktop, you need to install one of the following:
+
+- [Docker Desktop](https://docs.docker.com/get-docker/) or [Rancher Desktop](https://rancherdesktop.io/) 
+- Alternatively, [Podman](https://podman.io/getting-started/installation.html)
 
 
-### Creating Docker-based Slurm Cluster
+## IBM Cloud Credentials for QPU access
+
+You will need valid IBM Cloud credentials to access the Quantum Processing Unit (QPU). Make sure your account is set up and ready before starting the exercises.
+
+Please refer to the [Set up your IBM Cloud account](https://quantum.cloud.ibm.com/docs/en/guides/cloud-setup) guide to create and configure your account.
+After completing the setup, save your access credentials by following the instructions in [Save your login credentials](https://quantum.cloud.ibm.com/docs/en/guides/save-credentials) at a text note. You will need an `API key` and `CRNs(Compute Resource Names)` to access to the QPUs.
+
+
+## Prepare SSH connection to the Github
+
+To clone a repository from GitHub using the `git clone` command, you may need to [generate an SSH key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) and [add it to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).
+
+
+# Creating Docker-based Slurm Cluster
 
 You can skip below steps if you already have Slurm Cluster for development.
 
-Please refer to  the [documentation in our shared repo](https://github.com/qiskit-community/spank-plugins/blob/main/demo/qrmi/slurm-docker-cluster/INSTALL.md) for the latest Slurm Docker Cluster installation instructions.
+Please refer to  the [documentation in spank plugin repo](https://github.com/qiskit-community/spank-plugins/blob/main/demo/qrmi/slurm-docker-cluster/INSTALL.md) for the latest Slurm Docker Cluster installation instructions.
 
-##### Note 
+If you successfully created the Slurm cluster, you should see six containers running on your machine. You can verify this by checking your terminal or viewing your containers in tools like Docker, Rancher Desktop, or Podman.
 
-4. Building [SPANK Plugin](../../../plugins/spank_qrmi/README.md)
+![launching containers](launch_containers.png)
+
+Please follow the installation guide to install the QRMI and Spank plugins. 
+
+After installing the QRMI and Spank plugins, your next step is update critical configuration files.
+
+# Configure slurm.conf and qrmi_config.json
+
+## How to edit files in the container
+
+There are two main ways to edit configuration files inside a container:
+
+### 1. Edit directly inside the container using an editor
+
+First connect to the container (for example `c` or `login` container)
 
 ```bash
-[root@c1 /]# cd /shared/spank-plugins/plugins/spank_qrmi
-[root@c1 /]# mkdir build
-[root@c1 /]# cd build
-[root@c1 /]# cmake ..
-[root@c1 /]# make
+docker exec -it <container_name> bash
 ```
 
-> NOTE: you might need to run `git config --global --add safe.directory /shared/spank-plugins/plugins/spank_qrmi/build/deps/src/QRMI` if `make` is complaining about folder ownership
+Open the file with [vi editor](https://www.redhat.com/en/blog/introduction-vi-editor)(or another editor):
 
-5. Creating qrmi_config.json
+```bash
+vi /path/to/filename.txt
+```
 
-Refer [this example](https://github.com/qiskit-community/spank-plugins/blob/main/plugins/spank_qrmi/qrmi_config.json.example) and describe your environment. Then, create a file under /etc/slurm or other where slurm daemons can access.
+Once finishe editing, press `ESC` and type `:wq` to save and quit editor.
+
+### 2. Edit Locally and Copy Back to the Container
+
+If you prefer to use your local editor, follow these steps:
+
+First, copy the file from the container to your local machine:
+
+```bash
+docker cp <container_name>:/path/to/file /local/path
+```
+Next, edit the file locally using your preferred editor (e.g., VS Code, nano, etc)
+
+Then, copy the updated file back into the container:
+
+```bash
+docker cp /local/path <container_name>:/path/to/file
+```
+
+At following part, we will introduce how to use vi editor to edit both config files.
+
+## Edit slurm.conf
+
+
+
+```bash
+scontrol reconfigure
+scontrol update NodeName=c[1-2] State=RESUME
+```
+
+## Edit qrmi_config.json
+
+Use the following command to edit `qrmi_config.json`:
+
+
+```bash
+((pyenv) ) [root@c1 /]# vi /etc/slrum/qrmi_config.json
+```
+
+Next, edit the file by pressing `i` to enter insert mode in vi. Add the quantum backends you can access using your `IAM APIKEY` and `CRN`. Refer to [this guide](https://quantum.cloud.ibm.com/docs/en/guides/save-credentials#find-your-access-credentials) to learn how to find your access credentials. Below is an example of adding three QPUs available with your Open Plan:
 
 Example:
-```json
+```
 {
   "resources": [
     {
-      "name": "ibm_brisbane", // or whatever backend name you have access to
+      "name": "ibm_fez",
       "type": "qiskit-runtime-service",
       "environment": {
         "QRMI_IBM_QRS_ENDPOINT": "https://quantum.cloud.ibm.com/api/v1",
         "QRMI_IBM_QRS_IAM_ENDPOINT": "https://iam.cloud.ibm.com",
         "QRMI_IBM_QRS_IAM_APIKEY": "<YOUR IAM APIKEY FOR THIS BACKEND>",
-        "QRMI_IBM_QRS_SERVICE_CRN": "<YOUR IQP INSTANCE CRN>"
+        "QRMI_IBM_QRS_SERVICE_CRN": "<YOUR IQP INSTANCE CRN>",
+        “QRMI_IBM_QRS_SESSION_MODE”: “batch”
+
       }
     },
+    {
+      "name": "ibm_marrakesh",
+      "type": "qiskit-runtime-service",
+      "environment": {
+        "QRMI_IBM_QRS_ENDPOINT": "https://quantum.cloud.ibm.com/api/v1",
+        "QRMI_IBM_QRS_IAM_ENDPOINT": "https://iam.cloud.ibm.com",
+        "QRMI_IBM_QRS_IAM_APIKEY": "<YOUR IAM APIKEY FOR THIS BACKEND>",
+        "QRMI_IBM_QRS_SERVICE_CRN": "<YOUR IQP INSTANCE CRN>",
+        “QRMI_IBM_QRS_SESSION_MODE”: “batch”
+      }
+    },
+    {
+      "name": "ibm_torino",
+      "environment": {
+        "QRMI_IBM_QRS_ENDPOINT": "https://quantum.cloud.ibm.com/api/v1",
+        "QRMI_IBM_QRS_IAM_ENDPOINT": "https://iam.cloud.ibm.com",
+        "QRMI_IBM_QRS_IAM_APIKEY": "<YOUR IAM APIKEY FOR THIS BACKEND>",
+        "QRMI_IBM_QRS_SERVICE_CRN": "<YOUR IQP INSTANCE CRN>",
+        “QRMI_IBM_QRS_SESSION_MODE”: “batch”
+      }
+    }
   ]
 }
 ```
 
+> Note: If you are using a premium plan and can enable session mode, you may remove `"QRMI_IBM_QRS_SESSION_MODE": "batch"` from the configuration file.
 
-### Running examples of hybrid jobs in the Slurm Cluster
-
-The examples in the [Slurm Docker Cluster Installation Document](https://github.com/qiskit-community/spank-plugins/blob/main/demo/qrmi/slurm-docker-cluster/INSTALL.md) show how to submit quantum only jobs using QRMI, next we will look into Quantum-Classical mixed workflows.
-
-#### 1. Running `Hello, World!` and `Hello, Qiskit!`
-
-```bash
-sbatch /shared/chapters/ch2/hello_world/hello_world.sh
-squeue
-```
-
-```bash
-sbatch /shared/chapters/ch2/hello_qiskit/hello_qiskit.sh
-squeue
-```
-
-#### 2. Running patterns workflow
-
-```bash
-MAPPING_JOB=$(sbatch --parsable mapping.sh)
-OPTIMIZE_JOB=$(sbatch --parsable --dependency=afterok:$MAPPING_JOB optimization.sh)
-EXECUTE_JOB=$(sbatch --parsable --dependency=afterok:$OPTIMIZE_JOB execution.sh)
-squeue
-```
-
-#### 3. Running SQD
-
-```bash
-MAPPING_JOB=$(sbatch --parsable mapping.sh)
-OPTIMIZE_JOB=$(sbatch --parsable --dependency=afterok:$MAPPING_JOB optimization.sh)
-EXECUTE_JOB=$(sbatch --parsable --dependency=afterok:$OPTIMIZE_JOB execution.sh)
-POSTPROCESSING_JOB=$(sbatch --parsable --dependency=afterok:$EXECUTE_JOB postprocessing.sh)
-squeue
-```
-
-### Running serialized jobs using the qrmi_task_runner Slurm Cluster
-
-It is possible to run JSON-serialized jobs directly using a commandline utility called qrmi_task runner.
-See [the docs](https://github.com/qiskit-community/qrmi/blob/main/bin/task_runner/README.md) for that tool for details.
-
-```bash
-[root@login /]# sbatch /shared/spank-plugins/demo/qrmi/jobs/run_task.sh
-```
-
-#### Convenient commands to update devices or output locations:
-
-```bash
-find . -name "*.sh" -exec sed -i 's/^#SBATCH --qpu=.*/#SBATCH --qpu=ibm_torino/' {} +
-find ~/hpc-course-demos -name "*.sh" -exec grep -l "#SBATCH --output=" {} \; -exec sed -i 's|#SBATCH --output=.*|#SBATCH --output=slurm-%j.out|g' {} \;
-```
+After you finish editing the file in vi, press `ESC` to exit insert mode then type `:wq` and press Enter to save and close the file.
