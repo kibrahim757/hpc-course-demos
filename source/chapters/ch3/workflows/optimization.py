@@ -5,7 +5,7 @@ from qiskit.quantum_info import SparsePauliOp
 from qiskit.qasm3 import loads, dumps
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qrmi.primitives import QRMIService
-from qrmi.primitives.ibm import get_target
+from qrmi.primitives.ibm import get_target, get_backend 
 
 service = QRMIService()
 resources = service.resources()
@@ -14,6 +14,7 @@ if len(resources) == 0:
 
 qrmi = resources[0]
 target = get_target(qrmi)
+backend= get_backend(qrmi)
 
 num_qubits=target.num_qubits
 
@@ -30,7 +31,7 @@ with open(os.path.join(data_folder, "obs.json")) as f:
 load_dotenv()
 
 pm = generate_preset_pass_manager(
-        target=target, 
+        backend=backend, 
         optimization_level=1
       )
 isa_qc = pm.run(qc)

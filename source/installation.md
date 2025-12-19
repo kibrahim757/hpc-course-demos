@@ -8,7 +8,7 @@ This document provides guidance on setting up an environment for the HPC course 
 - [Creating Docker-based Slurm Cluster](#creating-docker-based-slurm-cluster)
 - [Building and installing QRMI and SPANK Plugins](#building-and-installing-qrmi-and-spank-plugins)
 - [Modify configurations for this course](#running-examples-of-primitive-job-in-slurm-cluster)
-
+- [Copy course files and install Course Requirements](#copy_and_install_requirments)
 
 # Pre-requisites
 
@@ -92,13 +92,45 @@ docker cp /local/path <container_name>:/path/to/file
 
 At following part, we will introduce how to use vi editor to edit both config files.
 
+> Note: you can also utilize `shared` folder to share files and folders between containers and local machine. 
+
 ## Edit slurm.conf
 
+Next, you need to update the slurm.conf file to adjust the CPUs setting so it matches your local machine’s physical CPU count:
 
 
 ```bash
+((pyenv) ) [root@c1 /]# vi /etc/slrum/slurm.conf
+```
+
+Navigate to line 93 (or search for NodeName), then press i to enter insert mode. Update the CPUs value to 1 or another appropriate number that reflects your machine’s actual CPU cores.
+For example, change:
+
+```
+NodeName=c[1-2] CPUs=6 RealMemory=1000 State=UNKNOWN
+```
+
+To:
+
+```
+NodeName=c[1-2] CPUs=1 RealMemory=1000 State=UNKNOWN
+```
+
+save and exit by type `Esc` and `:wq`, then apply the changes by running:
+
+```bash
+systemctl restart slurmd
 scontrol reconfigure
 scontrol update NodeName=c[1-2] State=RESUME
+```
+
+If everything is set correctly, you should see the following output when you run `sinfo` inside the container:
+
+
+``` bash
+((pyenv) ) [root@c1 chapters]# sinfo
+PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
+normal*      up 5-00:00:00      2   idle c[1-2]
 ```
 
 ## Edit qrmi_config.json
@@ -124,7 +156,7 @@ Example:
         "QRMI_IBM_QRS_IAM_ENDPOINT": "https://iam.cloud.ibm.com",
         "QRMI_IBM_QRS_IAM_APIKEY": "<YOUR IAM APIKEY FOR THIS BACKEND>",
         "QRMI_IBM_QRS_SERVICE_CRN": "<YOUR IQP INSTANCE CRN>",
-        “QRMI_IBM_QRS_SESSION_MODE”: “batch”
+        "QRMI_IBM_QRS_SESSION_MODE": "batch"
 
       }
     },
@@ -136,17 +168,18 @@ Example:
         "QRMI_IBM_QRS_IAM_ENDPOINT": "https://iam.cloud.ibm.com",
         "QRMI_IBM_QRS_IAM_APIKEY": "<YOUR IAM APIKEY FOR THIS BACKEND>",
         "QRMI_IBM_QRS_SERVICE_CRN": "<YOUR IQP INSTANCE CRN>",
-        “QRMI_IBM_QRS_SESSION_MODE”: “batch”
+        "QRMI_IBM_QRS_SESSION_MODE": "batch"
       }
     },
     {
       "name": "ibm_torino",
+      "type": "qiskit-runtime-service",
       "environment": {
         "QRMI_IBM_QRS_ENDPOINT": "https://quantum.cloud.ibm.com/api/v1",
         "QRMI_IBM_QRS_IAM_ENDPOINT": "https://iam.cloud.ibm.com",
         "QRMI_IBM_QRS_IAM_APIKEY": "<YOUR IAM APIKEY FOR THIS BACKEND>",
         "QRMI_IBM_QRS_SERVICE_CRN": "<YOUR IQP INSTANCE CRN>",
-        “QRMI_IBM_QRS_SESSION_MODE”: “batch”
+        "QRMI_IBM_QRS_SESSION_MODE”: “batch"
       }
     }
   ]
@@ -156,3 +189,33 @@ Example:
 > Note: If you are using a premium plan and can enable session mode, you may remove `"QRMI_IBM_QRS_SESSION_MODE": "batch"` from the configuration file.
 
 After you finish editing the file in vi, press `ESC` to exit insert mode then type `:wq` and press Enter to save and close the file.
+
+## Copy and install requirements
+
+You’re almost there! Open a terminal on your local machine and navigate to the directory you used to set up the containers. Run the following command to clone the course materials:
+
+
+```bash
+cd <Your WORKSPACE>/shared
+git clone https://github.com/qiskit-community/hpu-courses.git   # (Tentative)
+```
+
+Next, log in to the c1 container:
+
+```
+docker exec -it c1 bash```
+
+Inside the container, activate the virtual environment:
+
+```bash
+[root@c1 /]# source /shared/pyenv/bin/activate
+```
+
+Then navigate to the course folder and install the requirements:
+
+``` bash
+((pyenv) ) [root@c1 chapters]# cd /shared/hpc-course-demos/source
+((pyenv) ) [root@c1 chapters]# pip install -r requirements.txt
+```
+
+Now you are all set!

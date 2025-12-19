@@ -35,7 +35,7 @@ if len(resources) == 0:
 # Optimize
 pm = generate_preset_pass_manager(
         target=target, 
-        optimization_level=0
+        optimization_level=1
       )
 t_qc = pm.run(qc)
 t_obs = obs.apply_layout(t_qc.layout)
