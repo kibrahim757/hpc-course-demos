@@ -8,7 +8,7 @@ This document provides guidance on setting up an environment for the HPC course 
 - [Creating Docker-based Slurm Cluster](#creating-docker-based-slurm-cluster)
 - [Building and installing QRMI and SPANK Plugins](#building-and-installing-qrmi-and-spank-plugins)
 - [Modify configurations for this course](#running-examples-of-primitive-job-in-slurm-cluster)
-- [Copy course files and install Course Requirements](#copy_and_install_requirments)
+- [Copy course files and install Course Requirements](#copy-and-install-requirements)
 
 # Pre-requisites
 
