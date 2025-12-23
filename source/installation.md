@@ -202,12 +202,11 @@ systemctl restart slurmd
 scontrol reconfigure
 scontrol update NodeName=c[1-2] State=RESUME
 ```
-@Sophy, I had an issue with this command ref:
-```bash
+<!-- @Sophy, I had an issue with this command ref:
 ((pyenv) ) [root@c1 chapters]# systemctl restart slurmd
 System has not been booted with systemd as init system (PID 1). Can't operate.
 Failed to connect to bus: Host is down
-```
+-->
 
 If this doesn't work try this command from outside of your container:
 ```bash
@@ -283,7 +282,7 @@ Example:
 
 After you finish editing the file in vi, press `ESC` to exit insert mode then type `:wq` and press Enter to save and close the file.
 
-@Sophy, should we assume that the user already cloned the repo and is working from it? Iskander's original document copied the chapters folder into the shared directory which has the requirements.
+<!-- @Sophy, should we assume that the user already cloned the repo and is working from it? Iskander's original document copied the chapters folder into the shared directory which has the requirements. -->
 
 ## Copy and install requirements - Sophy
 
@@ -317,7 +316,7 @@ Then navigate to the course folder and install the requirements:
 
 ## Copy and install requirements - Khaalid
 
-You’re almost there! Open a terminal on your local machine and navigate to the directory you used to set up the containers. Run the following command to clone the course materials:
+You’re almost there! Open a terminal on your local machine and navigate to the directory you used to set up the containers. Run the following commands to clone the course materials:
 
 Next, log in to the c1 container:
 
