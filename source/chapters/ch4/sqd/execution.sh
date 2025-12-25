@@ -4,6 +4,8 @@
 #SBATCH --output=/shared/chapters/ch4/sqd/sqd-execution.out
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
+#SBATCH --partition=quantum
+#SBATCH --gres=qpu:1
 #SBATCH --qpu=ibm_torino
 
 source /shared/pyenv/bin/activate
