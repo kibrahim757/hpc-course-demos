@@ -82,51 +82,159 @@ Example Output:
 </summary>
 
 ```
-Creating General Resource Configuration file gres.conf
-Updating slurm.conf files
-Using container 'slurmctld' for configuration
-  Adding GresTypes=qpu
-  Adding NodeName=q1
-  Updating partition defaults
-  Adding PartitionName=quantum
-  Verifying configuration:
-NodeName=q1 CPUs=1 CoresPerSocket=1 Gres=qpu:1 State=UNKNOWN
-PartitionName=quantum Default=YES Nodes=q1 MaxTime=INFINITE State=UP
 Looking for the slurm-docker-cluster directory
 Using cluster directory: ./slurm-docker-cluster
+PMIx build present in Dockerfile
+  MpiDefault=pmix already set
+Adding gresType=qpu
+  Adding PartitionName=quantum to the end of the slurm.conf file.
+Verifying Configuration
+MpiDefault=pmix
+GresTypes=qpu
+NodeName=q1 CPUs=1 RealMemory=1000 CoresPerSocket=1 Gres=qpu:1 State=UNKNOWN
+PartitionName=quantum Default=YES Nodes=q1 MaxTime=INFINITE State=UP
+Rebuilding Docker image...
+[+] Building 467.8s (40/40) FINISHED                                                                                                                                                                                                           
+ => [internal] load local bake definitions                                                                                                                                                                                                0.0s
+ => => reading from stdin 3.06kB                                                                                                                                                                                                          0.0s
+ => [slurmctld internal] load build definition from Dockerfile                                                                                                                                                                            0.0s
+ => => transferring dockerfile: 6.49kB                                                                                                                                                                                                    0.0s
+ => [slurm-login internal] load metadata for docker.io/library/rockylinux:9                                                                                                                                                               0.3s
+ => [slurm-login internal] load .dockerignore                                                                                                                                                                                             0.0s
+ => => transferring context: 2B                                                                                                                                                                                                           0.0s
+ => CACHED [c2  1/25] FROM docker.io/library/rockylinux:9@sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6                                                                                                         0.0s
+ => [slurmdbd internal] load build context                                                                                                                                                                                                0.0s
+ => => transferring context: 290B                                                                                                                                                                                                         0.0s
+ => [c2  2/25] RUN set -ex     && yum makecache     && yum -y update     && yum -y install dnf-plugins-core     && yum config-manager --set-enabled crb     && yum -y install        wget        bzip2        perl        gcc        gc  53.0s
+ => [c1  3/25] RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1                                                                                                                                                  0.3s
+ => [slurmctld  4/25] RUN pip3.12 install Cython pytest                                                                                                                                                                                   2.7s 
+ => [slurmctld  5/25] RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y                                                                                                                                        14.1s 
+ => [slurmctld  6/25] RUN set -ex     && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.17/gosu-amd64"     && wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/1.17/go  3.1s 
+ => [slurm-login  7/25] RUN set -ex     && cd /tmp     && wget https://github.com/openpmix/openpmix/releases/download/v4.2.9/pmix-4.2.9.tar.gz     && tar xzf pmix-4.2.9.tar.gz     && cd pmix-4.2.9     && ./configure         --prefi  35.6s 
+ => [slurmctld  8/25] RUN pmix_info --version && ls -la /usr/lib64/libpmix*                                                                                                                                                               0.2s 
+ => [slurm-login  9/25] RUN set -x     && git clone -b slurm-25-05-3-1 --single-branch --depth=1 https://github.com/SchedMD/slurm.git     && pushd slurm     && ./configure --enable-debug --prefix=/usr --sysconfdir=/etc/slurm        194.4s 
+ => [c2 10/25] RUN set -ex     && cd /tmp     && wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.6.tar.gz     && tar xzf openmpi-4.1.6.tar.gz     && cd openmpi-4.1.6     && ./configure         --prefix=/usr/lo  153.5s 
+ => [c2 11/25] RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/openmpi-local.conf && ldconfig                                                                                                                                               0.3s 
+ => [slurm-login 12/25] RUN ln -sf /usr/local/bin/mpirun /usr/bin/mpirun     && ln -sf /usr/local/bin/mpiexec /usr/bin/mpiexec     && ln -sf /usr/local/bin/mpicc /usr/bin/mpicc     && ln -sf /usr/local/bin/mpicxx /usr/bin/mpicxx      0.3s
+ => [slurmctld 13/25] RUN echo "export PATH=/usr/local/bin:$PATH" >> /etc/profile.d/openmpi.sh     && echo "export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH" >> /etc/profile.d/openmpi.sh     && chmod +x /etc/profile.d/openmpi.  0.2s
+ => [slurmctld 14/25] RUN echo "export PATH=/usr/local/bin:$PATH" >> /etc/bashrc     && echo "export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH" >> /etc/bashrc                                                                      0.3s
+ => [c1 15/25] RUN /usr/local/bin/ompi_info | grep -E "(slurm|pmi)" | head -10 || true                                                                                                                                                    0.3s
+ => [c2 16/25] COPY slurm.conf /etc/slurm/slurm.conf                                                                                                                                                                                      0.0s
+ => [c1 17/25] COPY slurmdbd.conf /etc/slurm/slurmdbd.conf                                                                                                                                                                                0.1s
+ => [c2 18/25] COPY cgroup.conf /etc/slurm/cgroup.conf                                                                                                                                                                                    0.1s
+ => [slurmctld 19/25] COPY plugstack.conf.example /etc/slurm/plugstack.conf.example                                                                                                                                                       0.0s
+ => [slurmctld 20/25] COPY plugstack.conf /etc/slurm/plugstack.conf                                                                                                                                                                       0.1s
+ => [slurmdbd 21/25] COPY qrmi_config.json /etc/slurm/qrmi_config.json                                                                                                                                                                    0.0s
+ => [c1 22/25] COPY qrmi_config.json.example /etc/slurm/qrmi_config.json.example                                                                                                                                                          0.0s
+ => [slurmdbd 23/25] RUN set -x     && chown slurm:slurm /etc/slurm/slurmdbd.conf     && chmod 600 /etc/slurm/slurmdbd.conf                                                                                                               0.2s
+ => [slurmctld 24/25] RUN python3.12 -m venv ~/venv     && source ~/venv/bin/activate     && pip install --upgrade pip                                                                                                                    3.2s
+ => [c1 25/25] COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh                                                                                                                                                              0.0s
+ => [c2] exporting to image                                                                                                                                                                                                               4.9s
+ => => exporting layers                                                                                                                                                                                                                   4.9s
+ => => writing image sha256:ce7cc4dd7fb787ca2b26483c731b6a2d34c92e175c7271f7c7a4fb5b62d744e4                                                                                                                                              0.0s
+ => => naming to docker.io/library/slurm-docker-cluster:25.05.3-dev                                                                                                                                                                       0.0s
+ => [slurm-login] exporting to image                                                                                                                                                                                                      5.0s
+ => => exporting layers                                                                                                                                                                                                                   4.9s
+ => => writing image sha256:3b68fdc33e9e4fcd096dacb35ad359fa522fa4b479485d31ea7db2f1e3b1873f                                                                                                                                              0.0s
+ => => naming to docker.io/library/slurm-docker-cluster:25.05.3-dev                                                                                                                                                                       0.0s
+ => [c1] exporting to image                                                                                                                                                                                                               5.0s
+ => => exporting layers                                                                                                                                                                                                                   4.9s
+ => => writing image sha256:a80f14e808bcc511f219327e6711488f02ec1fc159c0fc93cbc4626c7ea42a7f                                                                                                                                              0.0s
+ => => naming to docker.io/library/slurm-docker-cluster:25.05.3-dev                                                                                                                                                                       0.0s
+ => [slurmctld] exporting to image                                                                                                                                                                                                        4.9s
+ => => exporting layers                                                                                                                                                                                                                   4.9s
+ => => writing image sha256:11109388cc2aad7e1d65d9f2e1eaaf570c2e2434f4f73b81477b95cb4893d741                                                                                                                                              0.0s
+ => => naming to docker.io/library/slurm-docker-cluster:25.05.3-dev                                                                                                                                                                       0.0s
+ => [slurmdbd] exporting to image                                                                                                                                                                                                         4.9s
+ => => exporting layers                                                                                                                                                                                                                   4.9s
+ => => writing image sha256:4ec6bbc9613efb95043fc43534383faa90f2d337ced80f8fb28ac1be7d309875                                                                                                                                              0.0s
+ => => naming to docker.io/library/slurm-docker-cluster:25.05.3-dev                                                                                                                                                                       0.0s
+ => [slurmdbd] resolving provenance for metadata file                                                                                                                                                                                     0.0s
+ => [c2] resolving provenance for metadata file                                                                                                                                                                                           0.0s
+ => [slurmctld] resolving provenance for metadata file                                                                                                                                                                                    0.0s
+ => [slurm-login] resolving provenance for metadata file                                                                                                                                                                                  0.0s
+ => [c1] resolving provenance for metadata file                                                                                                                                                                                           0.0s
+[+] build 1/1
+ ✔ Image slurm-docker-cluster:25.05.3-dev Built                                                                                                                                                                                         468.1s 
+Restarting containers with new image...
+[+] down 7/7
+ ✔ Container c2                               Removed                                                                                                                                                                                     0.4s 
+ ✔ Container login                            Removed                                                                                                                                                                                    10.2s 
+ ✔ Container c1                               Removed                                                                                                                                                                                     2.5s 
+ ✔ Container slurmctld                        Removed                                                                                                                                                                                     0.2s 
+ ✔ Container slurmdbd                         Removed                                                                                                                                                                                     0.3s 
+ ✔ Container mysql                            Removed                                                                                                                                                                                     0.5s 
+ ✔ Network slurm-docker-cluster_slurm-network Removed                                                                                                                                                                                     0.3s 
+[+] up 7/7
+ ✔ Network slurm-docker-cluster_slurm-network Created                                                                                                                                                                                     0.0s 
+ ✔ Container mysql                            Created                                                                                                                                                                                     0.0s 
+ ✔ Container slurmdbd                         Created                                                                                                                                                                                     0.0s 
+ ✔ Container slurmctld                        Created                                                                                                                                                                                     0.0s 
+ ✔ Container c1                               Created                                                                                                                                                                                     0.0s 
+ ✔ Container login                            Created                                                                                                                                                                                     0.0s 
+ ✔ Container c2                               Created                                                                                                                                                                                     0.0s 
+Waiting for services to start
+
+Creating General Resource Configuration file gres.conf
+
+Copying slurm.conf to containers...
+Successfully copied 4.1kB to slurmctld:/etc/slurm/slurm.conf
+Successfully copied 4.1kB to c1:/etc/slurm/slurm.conf
+Successfully copied 4.1kB to c2:/etc/slurm/slurm.conf
 Adding Quantum Node to Cluster
 
 Updating docker-compose.yml file if needed
 Adding q1 service to docker-compose.yml...
 Starting q1 container
-[+] up 5/5
- ✔ Volume slurm-docker-cluster_var_log_q1 Created                                                                                                                                                                      0.0s 
- ✔ Container mysql                        Running                                                                                                                                                                      0.0s 
- ✔ Container slurmdbd                     Running                                                                                                                                                                      0.0s 
- ✔ Container slurmctld                    Running                                                                                                                                                                      0.0s 
- ✔ Container q1                           Created                                                                                                                                                                      0.1s 
-Updating slurm
+[+] up 4/4
+ ✔ Container mysql     Running                                                                                                                                                                                                            0.0s 
+ ✔ Container slurmdbd  Running                                                                                                                                                                                                            0.0s 
+ ✔ Container slurmctld Running                                                                                                                                                                                                            0.0s 
+ ✔ Container q1        Created                                                                                                                                                                                                            0.0s 
 Verifying changes
+Reconfiguring Slurm...
+--- Slurm MPI Support ---
+MPI plugin types are...
+        none
+        cray_shasta
+        pmix
+        pmi2
+specific pmix plugin versions available: pmix_v4
+
+--- OpenMPI PMIx/Slurm Support ---
+  Configure command line: '--prefix=/usr/local' '--with-pmix=/usr' '--with-slurm' '--with-hwloc' '--enable-mpi-cxx' '--enable-mpi-fortran=no' '--disable-getpwuid'
+                MCA pmix: isolated (MCA v2.1.0, API v2.0.0, Component v4.1.6)
+                MCA pmix: flux (MCA v2.1.0, API v2.0.0, Component v4.1.6)
+                MCA pmix: ext3x (MCA v2.1.0, API v2.0.0, Component v4.1.6)
+                 MCA ess: slurm (MCA v2.1.0, API v3.0.0, Component v4.1.6)
+
+--- Cluster Status ---
 PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
 normal       up 5-00:00:00      2   idle c[1-2]
 quantum*     up   infinite      1   idle q1
+
+--- Quantum Node Status ---
 NodeName=q1 Arch=x86_64 CoresPerSocket=1 
-   CPUAlloc=0 CPUEfctv=1 CPUTot=1 CPULoad=0.46
+   CPUAlloc=0 CPUEfctv=1 CPUTot=1 CPULoad=1.84
    AvailableFeatures=(null)
    ActiveFeatures=(null)
-   Gres=(null)
+   Gres=qpu:1
    NodeAddr=q1 NodeHostName=q1 Version=25.05.3
    OS=Linux 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 
-   RealMemory=1 AllocMem=0 FreeMem=8988 Sockets=1 Boards=1
+   RealMemory=1000 AllocMem=0 FreeMem=3219 Sockets=1 Boards=1
    State=IDLE ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A
    Partitions=quantum 
-   BootTime=2025-12-23T02:36:49 SlurmdStartTime=2025-12-23T14:41:26
-   LastBusyTime=2025-12-23T14:41:26 ResumeAfterTime=None
-   CfgTRES=cpu=1,mem=1M,billing=1
+   BootTime=2025-12-23T17:51:25 SlurmdStartTime=2025-12-25T13:49:25
+   LastBusyTime=2025-12-25T13:49:25 ResumeAfterTime=None
+   CfgTRES=cpu=1,mem=1000M,billing=1
    AllocTRES=
    CurrentWatts=0 AveWatts=0
 
-Done
+
+--- SPANK Plugin Check ---
+QRMI SPANK plugin loaded (--qpu option available)
+
+Done!
 ```
 </details>
 
@@ -216,9 +324,12 @@ docker exec slurmctld scontrol reconfigure
 
 If everything is set correctly, you should see the following output when you run `sinfo` inside the container:
 
+```bash
+docker exec -it c1 bash
+```
 
 ``` bash
-((pyenv) ) [root@c1 chapters]# sinfo
+[root@c1 chapters]# sinfo
 [root@login /]# sinfo
 PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
 normal       up 5-00:00:00      2   idle c[1-2]
@@ -335,7 +446,7 @@ Then navigate to the chapters folder and install the requirements:
 ``` bash
 ((pyenv) ) [root@c1 chapters]# cd /shared/chapters
 ((pyenv) ) [root@c1 chapters]# pip install -r requirements.txt
-
+```
 Now you are all set!
 
 #### Convenient Linux commands to update devices or output locations:

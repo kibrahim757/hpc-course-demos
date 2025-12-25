@@ -2,7 +2,7 @@
 #
 #SBATCH --job-name=optimization
 #SBATCH --output=/shared/chapters/ch3/workflows/optimization.out
-#SBATCH --ntasks=4
+#SBATCH --ntasks=2
 #SBATCH --partition=normal
 #SBATCH --qpu=ibm_torino
 

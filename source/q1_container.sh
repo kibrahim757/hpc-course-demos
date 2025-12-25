@@ -101,7 +101,6 @@ RUN pmix_info --version \&\& ls -la /usr/lib64/libpmix*\
 ARG OPENMPI_VERSION=4.1.6\
 \
 RUN set -ex \\\
-    && unset PMIX_VERSION \
     \&\& cd /tmp \\\
     \&\& wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPENMPI_VERSION}.tar.gz \\\
     \&\& tar xzf openmpi-${OPENMPI_VERSION}.tar.gz \\\

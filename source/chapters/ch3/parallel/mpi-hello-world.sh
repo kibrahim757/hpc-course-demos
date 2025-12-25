@@ -8,4 +8,4 @@
 #SBATCH --partition=normal
 
 source /shared/pyenv/bin/activate
-/usr/lib64/openmpi/bin/mpirun --allow-run-as-root python mpi-hello-world.py
+srun python mpi-hello-world.py
