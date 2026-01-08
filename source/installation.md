@@ -382,7 +382,7 @@ Example:
         "QRMI_IBM_QRS_IAM_ENDPOINT": "https://iam.cloud.ibm.com",
         "QRMI_IBM_QRS_IAM_APIKEY": "<YOUR IAM APIKEY FOR THIS BACKEND>",
         "QRMI_IBM_QRS_SERVICE_CRN": "<YOUR IQP INSTANCE CRN>",
-        "QRMI_IBM_QRS_SESSION_MODE”: “batch"
+        "QRMI_IBM_QRS_SESSION_MODE": "batch"
       }
     }
   ]
