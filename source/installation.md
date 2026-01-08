@@ -428,37 +428,7 @@ After you finish editing the file in vi, press `ESC` to exit insert mode then ty
 
 <!-- @Sophy, should we assume that the user already cloned the repo and is working from it? Iskander's original document copied the chapters folder into the shared directory which has the requirements. -->
 
-## Copy and install requirements - Sophy
-
-You’re almost there! Open a terminal on your local machine and navigate to the directory you used to set up the containers. Run the following command to clone the course materials:
-
-
-
-```bash
-cd <Your WORKSPACE>/shared
-git clone https://github.com/qiskit-community/hpc-courses.git   # (Tentative)
-```
-
-Next, log in to the c1 container:
-
-```bash
-docker exec -it c1 bash
-```
-
-Inside the container, activate the virtual environment:
-
-```bash
-[root@c1 /]# source /shared/pyenv/bin/activate
-```
-
-Then navigate to the course folder and install the requirements:
-
-``` bash
-((pyenv) ) [root@c1 chapters]# cd /shared/hpc-course-demos/source
-((pyenv) ) [root@c1 chapters]# pip install -r requirements.txt
-```
-
-## Copy and install requirements - Khaalid
+## Copy and install requirements
 
 You’re almost there! Open a terminal on your local machine and navigate to the directory you used to set up the containers. Run the following commands to clone the course materials:
 
