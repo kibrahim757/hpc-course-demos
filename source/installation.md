@@ -56,6 +56,39 @@ Please follow the installation guide to install the QRMI and Spank plugins.
 
 After installing the QRMI and Spank plugins, your next step is to creater a quantum partition in slurm, copy the provided scripts into the shared slurm directory, and update critical configuration files.
 
+<details>
+<summary>
+If you experience gosu failures during the docker compose build process try this:
+
+</summary>
+In the Dockerfile found in 
+
+```bash
+/slurm-docker-cluster/ 
+```
+Replace lines 57-65:
+```bash
+RUN set -ex \
+    && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-amd64" \
+    && wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-amd64.asc" \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+    && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+    && rm -rf "${GNUPGHOME}" /usr/local/bin/gosu.asc \
+    && chmod +x /usr/local/bin/gosu \
+    && gosu nobody true
+```
+
+with 
+```bash
+RUN set -ex \
+    && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-amd64" \
+    && echo "bbc4136d03ab138b1ad66fa4fc051bafc6cc7ffae632b069a53657279a450de3  /usr/local/bin/gosu" | sha256sum -c - \
+    && chmod +x /usr/local/bin/gosu \
+    && gosu nobody true
+```
+<details>
+
 ## Copy script files into the shared directory so all containers have access
 
 while In the ```/slurm-docker-cluster``` directory pass the following command into your terminal. Note that this assumes that the slurm-docker-cluster directory is present in the ```/source``` directory of this repo, if needed modify the command to point to the ```/chapters``` directory found in the source folder of this repo.
@@ -450,8 +483,11 @@ Then navigate to the chapters folder and install the requirements:
 Now you are all set!
 
 #### Convenient Linux commands to update devices or output locations:
-
+To update the --qpu flag in all your scripts run:
 ```bash
 find . -name "*.sh" -exec sed -i 's/^#SBATCH --qpu=.*/#SBATCH --qpu=ibm_torino/' {} +
+```
+To change the output location of all slurm .out files update the ```|#SBATCH --output=slurm-%j.out|g' {} \;``` part of this command with the output path and file name you would like. 
+```bash
 find ~/hpc-course-demos -name "*.sh" -exec grep -l "#SBATCH --output=" {} \; -exec sed -i 's|#SBATCH --output=.*|#SBATCH --output=slurm-%j.out|g' {} \;
 ```
