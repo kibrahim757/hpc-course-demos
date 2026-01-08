@@ -267,6 +267,25 @@ docker exec slurmctld bash -c 'cat > /etc/slurm/gres.conf << EOF
 # GRES Configuration for Quantum Queue
 NodeName=q1 Name=qpu Count=1
 EOF'
+
+# Ensure the qrmi_config.json file gets sent to all container
+echo "Copying qrmi_config.json files to containers..."
+QRMI_CONFIG="$CLUSTER_DIR/shared/spank-plugins/demo/qrmi/etc/slurm/qrmi_config.json"
+if [[ -f "$QRMI_CONFIG" ]]; then
+    echo "  Copying qrmi_config.json from $QRMI_CONFIG"
+    docker cp "$QRMI_CONFIG" slurmctld:/etc/slurm/qrmi_config.json
+    docker cp "$QRMI_CONFIG" c1:/etc/slurm/qrmi_config.json
+    docker cp "$QRMI_CONFIG" c2:/etc/slurm/qrmi_config.json
+    docker cp "$QRMI_CONFIG" q1:/etc/slurm/qrmi_config.json
+else
+    echo "  Creating empty qrmi_config.json (no QPU resources configured)"
+    docker exec slurmctld bash -c 'cat > /etc/slurm/qrmi_config.json << EOF
+{
+  "resources": []
+}
+EOF'
+fi
+
 # Copy updated slurm.conf to containers
 echo ""
 echo "Copying slurm.conf to containers..."
