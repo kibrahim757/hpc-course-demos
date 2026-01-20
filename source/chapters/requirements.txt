@@ -1,0 +1,4 @@
+ffsim
+qiskit_addon_sqd
+python-dotenv
+mpi4py

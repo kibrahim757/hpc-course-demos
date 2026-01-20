@@ -218,3 +218,5 @@ __marimo__/
 # Other
 slurm-docker-cluster
 slurm-docker-cluster.orig
+
+updates.patch

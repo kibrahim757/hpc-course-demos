@@ -1,4 +1,8 @@
+Run these commands to start your job and watch the Slurm queue.
+```shell
 MAPPING_JOB=$(sbatch --parsable mapping.sh)
 OPTIMIZE_JOB=$(sbatch --parsable --dependency=afterok:$MAPPING_JOB optimization.sh)
 EXECUTE_JOB=$(sbatch --parsable --dependency=afterok:$OPTIMIZE_JOB execution.sh)
-squeue
+watch squeue
+```
+When all jobs have completed press ctrl+c to return to the command line.

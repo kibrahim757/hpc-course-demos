@@ -1,14 +1,23 @@
 import os
 import json
 import numpy as np
-from qiskit.circuit.library import PauliTwoDesign
+from qiskit.circuit.library import pauli_two_design
 from qiskit.quantum_info import SparsePauliOp
 from qiskit.qasm3 import dumps
+from qrmi.primitives import QRMIService
+from qrmi.primitives.ibm import get_target
 
+service = QRMIService()
+resources = service.resources()
+if len(resources) == 0:
+    raise ValueError("No quantum resource is available.")
 
-num_qubits=os.environ.get("NUM_QUBITS", 10)
+qrmi = resources[0]
+target = get_target(qrmi)
 
-qc = PauliTwoDesign(num_qubits=num_qubits,reps=4, seed=5, insert_barriers=True)
+num_qubits=target.num_qubits
+
+qc = pauli_two_design(num_qubits=num_qubits,reps=4, seed=5, insert_barriers=True)
 parameters = qc.parameters
 obs = SparsePauliOp.from_sparse_list([("Z", [num_qubits-2], 1)], num_qubits=num_qubits)
 
