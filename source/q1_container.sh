@@ -276,7 +276,6 @@ if [[ -f "$QRMI_CONFIG" ]]; then
     docker cp "$QRMI_CONFIG" slurmctld:/etc/slurm/qrmi_config.json
     docker cp "$QRMI_CONFIG" c1:/etc/slurm/qrmi_config.json
     docker cp "$QRMI_CONFIG" c2:/etc/slurm/qrmi_config.json
-    docker cp "$QRMI_CONFIG" q1:/etc/slurm/qrmi_config.json
 else
     echo "  Creating empty qrmi_config.json (no QPU resources configured)"
     docker exec slurmctld bash -c 'cat > /etc/slurm/qrmi_config.json << EOF
@@ -358,9 +357,11 @@ sleep 5
 
 echo "Verifying changes"
 
-# Copy slurm.conf to q1
+# Copy slurm.conf and qrmi_config.json to q1
 docker cp "$SLURM_CONF" q1:/etc/slurm/slurm.conf 2>/dev/null || true
-
+if [[ -f "$QRMI_CONFIG" ]]; then
+    docker cp "$QRMI_CONFIG" q1:/etc/slurm/qrmi_config.json
+fi
 # Reconfigure Slurm
 echo "Reconfiguring Slurm..."
 docker exec slurmctld scontrol reconfigure
