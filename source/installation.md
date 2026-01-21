@@ -327,9 +327,9 @@ Then navigate to the chapters folder and install the requirements:
 ((pyenv) ) [root@c1 chapters]# cd /shared/chapters
 ((pyenv) ) [root@c1 chapters]# pip install -r requirements.txt
 ```
-Now you are all set!
+Now you are all set. Follow the course notebooks and videos to begin your Quantum Centric Super Computing journey!
 
-#### Convenient Linux commands to update devices or output locations:
+# Convenient Linux commands to update devices or output locations:
 To update the --qpu flag in all your scripts run:
 ```bash
 find . -name "*.sh" -exec sed -i 's/^#SBATCH --qpu=.*/#SBATCH --qpu=ibm_torino/' {} +
