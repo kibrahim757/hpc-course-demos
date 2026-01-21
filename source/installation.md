@@ -78,13 +78,21 @@ RUN set -ex \
     && gosu nobody true
 ```
 
-with 
+with:
 ```bash
 RUN set -ex \
-    && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-amd64" \
-    && echo "bbc4136d03ab138b1ad66fa4fc051bafc6cc7ffae632b069a53657279a450de3  /usr/local/bin/gosu" | sha256sum -c - \
+    && ARCH="$(uname -m)" \
+    && case "$ARCH" in \
+        x86_64) GOSU_ARCH='amd64'; GOSU_SHA256='bbc4136d03ab138b1ad66fa4fc051bafc6cc7ffae632b069a53657279a450de3' ;; \
+        aarch64) GOSU_ARCH='arm64'; GOSU_SHA256='c3805a85d17f4454c23d7059bcb97e1ec1af272b90126e79ed002342de08389b' ;; \
+        armv7l) GOSU_ARCH='armhf'; GOSU_SHA256='e5866286277ff2a2159fb9196fea13e0a59d3f1091ea46ddb985160b94b6841b' ;; \
+        *) echo "Unsupported architecture: $ARCH" && exit 1 ;; \
+    esac \
+    && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$GOSU_ARCH" \
+    && echo "$GOSU_SHA256  /usr/local/bin/gosu" | sha256sum -c - \
     && chmod +x /usr/local/bin/gosu \
     && gosu nobody true
+
 ```
 </details>
 
