@@ -47,6 +47,9 @@ It is recommended to clone the repo into the following directory:
 hpc-course-demo/source
 ```
 
+So in this case, the <YOUR WORKSPACE> mentioned in the [installation guide](https://github.com/qiskit-community/spank-plugins/blob/main/demo/qrmi/slurm-docker-cluster/INSTALL.md#1-creating-your-workspace-on-your-pc) refers to `hpc-course-demo/source`.
+
+
 If you successfully created the Slurm cluster, you should see six containers running on your machine. You can verify this by checking your terminal or viewing your containers in tools like Docker, Rancher Desktop, or Podman.
 
 ![launching containers](../media/images/launch_containers.png)
