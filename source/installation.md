@@ -204,7 +204,7 @@ Use the following command to edit `qrmi_config.json`:
 
 
 ```bash
-((pyenv) ) [root@c1 /]# vi /etc/slrum/qrmi_config.json
+((pyenv) ) [root@c1 /]# vi /etc/slurm/qrmi_config.json
 ```
 
 Next, edit the file by pressing `i` to enter insert mode in vi. Add the quantum backends you can access using your `IAM APIKEY` and `CRN`. Refer to [this guide](https://quantum.cloud.ibm.com/docs/en/guides/save-credentials#find-your-access-credentials) to learn how to find your access credentials. Below is an example of adding three QPUs available with your Open Plan:
